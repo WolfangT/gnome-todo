@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkBox" id="box_row">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="border_width">6</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkImage" id="image_service">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="pixel_size">64</property>
+        <property name="icon_name">goa-panel</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="valign">center</property>
+        <property name="hexpand">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkLabel" id="label_name">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">Name</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_service">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="valign">start</property>
+            <property name="label" translatable="yes">Service</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkSeparator">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_delete">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_delete" swapped="no"/>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">gtrfhgh</property>
+                <property name="icon_name">edit-delete-symbolic</property>
+              </object>
+            </child>
+            <style>
+              <class name="destructive-action"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+  </object>
+</interface>

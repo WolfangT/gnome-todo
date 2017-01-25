@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkBox" id="box_account_handler">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="halign">center</property>
+    <property name="valign">center</property>
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
+    <property name="border_width">18</property>
+    <property name="orientation">vertical</property>
+    <property name="spacing">18</property>
+    <child>
+      <object class="GtkImage" id="image_service">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="pixel_size">64</property>
+        <property name="icon_name">goa-panel</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkGrid">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="row_spacing">6</property>
+        <property name="column_spacing">12</property>
+        <child>
+          <object class="GtkLabel" id="label_name">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">Name</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_service">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">Service</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lavel_active">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">Active</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry_name">
+            <property name="width_request">225</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="switch_active">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="halign">start</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="combo_service">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="button_authenticate">
+        <property name="label" translatable="yes">Log in</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <signal name="clicked" handler="on_authenticate" swapped="no"/>
+        <style>
+          <class name="suggested-action"/>
+        </style>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkSeparator">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">3</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="button_return">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="halign">start</property>
+        <property name="always_show_image">True</property>
+        <signal name="clicked" handler="on_return" swapped="no"/>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="icon_name">back</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> Return</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">4</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkBox" id="box_accounts_manager">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="halign">center</property>
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
+    <property name="border_width">24</property>
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkImage">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="pixel_size">64</property>
+            <property name="icon_name">goa-panel</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Manage your Accounts:</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="width_request">400</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="shadow_type">in</property>
+        <property name="min_content_width">300</property>
+        <property name="min_content_height">200</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkListBox" id="listbox_accounts">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="button_add">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="halign">end</property>
+        <signal name="clicked" handler="on_add_account" swapped="no"/>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="icon_name">add</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Add Account</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+        <style>
+          <class name="suggested-action"/>
+        </style>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+  </object>
+</interface>

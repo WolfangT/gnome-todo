@@ -12,6 +12,7 @@
 .*.sw[nop]
 .deps
 .dirstamp
+/.buildconfig
 .gitignore
 GPATH
 GRTAGS

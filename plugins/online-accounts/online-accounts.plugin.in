@@ -1,0 +1,13 @@
+[Plugin]
+Name = Online Accounts
+Module = online-accounts
+Description = Integration of various online services to GNOME To Do
+Version = @VERSION@
+Authors = Wolfang Torres <wolfang.torres@gmail.com>
+Copyright = Copyleft © The To Do maintainers
+Website = https://wiki.gnome.org/Apps/Todo
+Builtin = false
+Hidden = false
+License = GPL
+Loader = python3
+Depends =
