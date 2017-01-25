@@ -28,4 +28,8 @@ if BUILD_TODO_TXT_PLUGIN
 SUBDIRS += todo-txt
 endif
 
+if BUILD_ONLINE_ACCOUNTS_PLUGIN
+SUBDIRS += online-accounts
+endif
+
 MAINTAINERCLEANFILES = Makefile.in
