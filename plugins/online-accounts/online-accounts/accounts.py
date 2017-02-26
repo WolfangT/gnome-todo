@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Secret, GObject, Gtd, Gio
+from gi.repository import GObject, Gtd, Gio
+
+from .authentication import OAuth2
 
 from configparser import ConfigParser, ParsingError, MissingSectionHeaderError
 from contextlib import contextmanager
@@ -26,20 +28,12 @@ from os import makedirs
 from uuid import uuid4
 
 CONF_DIR = expanduser(
-    join('~','.local','share','gnome-todo','plugins','todoist')
+    join('~','.local','share','gnome-todo','plugins','online-accounts')
 )
 makedirs(CONF_DIR, exist_ok=True)
 CONF_FILE = join(CONF_DIR, 'accounts.conf')
 
-TODOIST_SCHEMA = Secret.Schema.new(
-    "org.gnome.Todo.Todoist",
-    Secret.SchemaFlags.NONE,
-    {
-        "cuenta": Secret.SchemaAttributeType.STRING,
-    },
-)
-
-TODOIST = "TODOIST"
+TODOIST = 'TODOIST'
 SERVICES = {
     TODOIST:('Todoist', 'goa-accounts-todoist'),
 }
@@ -64,11 +58,34 @@ def conf_handler(filename):
 class AccountsManager(Gio.ListStore):
     """Manages the accounts stored in the configuration file
 
-    Controls the creation of all """
+    Controls the creation, modification and deletion of all acocunts"""
+
+    ready = GObject.Property(type=bool, default=True)
+
+    def get_ready(self):
+        return self.ready
+
+    def set_ready(self, value):
+        self.ready = value
 
     def __init__(self):
         Gio.ListStore.__init__(self)
-        self._helper_create_initial_accounts()
+        self.set_ready(False)
+
+    def load(self):
+        with conf_handler(CONF_FILE) as conf:
+            for uid in conf.sections():
+                self._helper_create_account(uid, **conf[uid])
+
+    def _helper_create_account(self, uid, **kwarg):
+        account = Account(uid, **kwarg)
+        account.connect('notify::name', self.on_notify_property)
+        account.connect('notify::service', self.on_notify_property)
+        account.connect('notify::active', self.on_notify_property)
+        account.connect('notify::ready', self.on_account_ready)
+        self.append(account)
+        account.load()
+        return account
 
     def search_account(self, uid):
         for i in range(self.get_n_items()):
@@ -85,18 +102,14 @@ class AccountsManager(Gio.ListStore):
         with conf_handler(CONF_FILE) as conf:
             conf[str(account.uid)][param.name] = val
 
-    def _helper_create_account(self, uid, **kwarg):
-        account = Account(uid, **kwarg)
-        account.connect('notify::name', self.on_notify_property)
-        account.connect('notify::service', self.on_notify_property)
-        account.connect('notify::active', self.on_notify_property)
-        self.append(account)
-        return account
-
-    def _helper_create_initial_accounts(self):
-        with conf_handler(CONF_FILE) as conf:
-            for uid in conf.sections():
-                self._helper_create_account(uid, **conf[uid])
+    def on_account_ready(self, account, param):
+        """Check if all accounts are ready, managuer is ready if they are"""
+        for i in range(self.get_n_items()):
+            if not self.get_item(i).get_ready():
+                self.set_ready(False)
+                break
+        else:
+            self.set_ready(True)
 
     def create_account(self):
         uid = uuid4()
@@ -121,18 +134,12 @@ class Account(Gtd.Object):
     service = GObject.Property(type=str)
     active = GObject.Property(type=bool, default=False)
 
-    # @property
-    # def access_token(self):
-    #   Secret.password_lookup(
-    #       TODOIST_SCHEMA,
-    #       { "name": self.name, "service": self.},
-    #                  None, on_password_lookup)
-
-    # def on_password_lookup(source, result, unused):
-    #    password = Secret.password_lookup_finish(result)
-    #    #password will be null, if no matching password found
+    @GObject.Property(type=OAuth2)
+    def auth(self):
+        return self._auth
 
     def __init__(self, uid, **kwarg):
+        """Search for the access token in gnome-keyring"""
         Gtd.Object.__init__(self)
         self.uid = uid
         self.name = kwarg.get('name', '')
@@ -142,9 +149,19 @@ class Account(Gtd.Object):
             if ('service' in kwarg and kwarg['service'] != '')
             else None
         )
+        self.set_ready(False)
+        self._auth = OAuth2(self)
+        self._auth.connect('notify::ready', self.on_auth_ready)
+
+    def load(self):
+        self._auth.load()
+
+    def on_auth_ready(self, auth_obj, param):
+        if auth_obj.get_ready():
+            self.set_ready(True)
 
     def __eq__(self, other):
         return self.uid == other.uid
 
     def __str__(self):
-        return "<Account {} on {}>".format(self.name, self.service)
+        return '<Account {} on {}>'.format(self.name, self.service)

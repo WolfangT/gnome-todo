@@ -21,10 +21,11 @@
 import gi
 gi.require_version('Gtd', '1.0')
 gi.require_version('Secret', '1')
+gi.require_version('WebKit', '3.0')
 from gi.repository import Gtd, Gtk, GObject
 
-from todoist.api import TodoistAPI
 from .accounts import AccountsManager, Account, SERVICES
+from .providers import CreateProvider
 
 from os import path
 
@@ -53,7 +54,7 @@ class AccountRow(Gtk.ListBoxRow):
     __gsignals__ = {
         'delete-account': (GObject.SIGNAL_RUN_FIRST, None, (Account,)),
     }
-    _ui_file = get_local_file("account_row.ui")
+    _ui_file = get_local_file("account-row.ui")
 
     def __init__(self, account):
         Gtk.ListBoxRow.__init__(self)
@@ -103,7 +104,7 @@ class AccountRow(Gtk.ListBoxRow):
 
 class PreferencesPanel(Gtk.Stack):
 
-    _ui_file = get_local_file("preferences_panel.ui")
+    _ui_file = get_local_file("preferences-panel.ui")
     _selected_account = None
 
     def __init__(self, accounts_manager):
@@ -200,7 +201,7 @@ class PreferencesPanel(Gtk.Stack):
         self.set_visible_child(self.box_accounts_manager)
 
     def on_authenticate(self, obj):
-        #TODO
+        # TODO: todo
         pass
 
 
@@ -215,19 +216,31 @@ class Plugin(GObject.Object, Gtd.Activatable):
     def __init__(self):
         GObject.Object.__init__(self)
         self._providers = []
-        self.accounts_manager = AccountsManager()
         self.header_button = HeaderButton(self.manually_sync)
+        self.accounts_manager = AccountsManager()
+        self.accounts_manager.connect(
+            'notify::ready',
+            self.on_accounts_manager_ready,
+            )
         self.preferences_panel = PreferencesPanel(self.accounts_manager)
+
+    def on_accounts_manager_ready(self, accounts_manager, param):
+        if accounts_manager.get_ready():
+            for i in range(accounts_manager.get_n_items()):
+                account = accounts_manager.get_item(i)
+                provider = CreateProvider(account)
+                self.add_provider(provider)
 
     def add_provider(self, provider):
         self.providers.append(provider)
-        self.emit('provider-added', self, provider, None)
+        self.emit('provider-added', provider)
 
     def manually_sync(self, button):
-        self.provider.api.sync()
+        #TODO: make general sync function
+        pass
 
     def do_activate(self):
-        pass
+        self.accounts_manager.load()
 
     def do_deactivate(self):
         pass
