@@ -4,8 +4,8 @@ online_accounts_plugindir = $(plugindir)/online-accounts
 online_accounts_plugin_DATA = online-accounts.plugin
 nobase_online_accounts_plugin_DATA =  \
 	online-accounts/__init__.py \
-	online-accounts/preferences_panel.ui \
-	online-accounts/account_row.ui \
+	online-accounts/preferences-panel.ui \
+	online-accounts/account-row.ui \
 	online-accounts/authentication.py \
 	online-accounts/accounts.py \
 	online-accounts/providers.py \

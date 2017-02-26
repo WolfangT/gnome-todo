@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtd, GIO, Gdk, Glib, GObject
+from gi.repository import Gtd, Gio, Gdk, GLib, GObject
+
+from todoist import TodoistAPI
+from .accounts import Account, TODOIST
 
 from re import match
 from datetime import datetime, timezone, timedelta
@@ -114,38 +117,34 @@ def convert_from_todoist_color(color_code):
     return color
 
 
+def CreateProvider(account):
+    if account.service == TODOIST:
+        return TodoistProvider(account)
+
+
 class TodoistTask(Gtd.Task):
     """The Todoist Task"""
 
     id = GObject.Property(type=int)
 
-    def __init__(self, task, task_list):
+    def __init__(self, task, task_list, api):
         Gtd.Task.__init__(self)
-        self.api = get_todoist_api()
+        self.api = api
         self.import_from_todoist(task, task_list)
 
     def import_from_todoist(self, task, task_list):
         self.set_property('complete', task['checked'])
         # self.set_property(
-        #     'creation_date',
+        #     'creation-date',
         #     convert_from_todoist_datetime(task['date_added']),
         # )
         # self.set_property('depth', task['indent'])
         self.set_property('description', task['content'])
-        self.set_property(
-            'due-date',
-            convert_from_todoist_datetime(task['due_date_utc']),
-        )
         self.set_property('list', task_list)
         # self.set_property('parent', None)
         self.set_property('priority', task['priority'])
         self.set_property('title', task['content'])
-
-    def do_get_id(self):
-        return self.get_property('id')
-
-    def do_set_id(self, id):
-        self.set_property('id', id)
+        self.set_property('id', task['id'])
 
 
 class TodoistTaskList(Gtd.TaskList):
@@ -153,64 +152,55 @@ class TodoistTaskList(Gtd.TaskList):
 
     id = GObject.Property(type=int)
 
-    def __init__(self, project, provider):
+    def __init__(self, project, provider, api):
         Gtd.TaskList.__init__(self)
-        self.tasks = []
-        self.api = get_todoist_api()
+        self.api = api
         self.import_from_todoist(project, provider)
 
     def import_from_todoist(self, project, provider):
         self.set_property('color', convert_from_todoist_color(project['color']))
-        self.set_property('is_removable', False)
+        self.set_property('is-removable', False)
         self.set_property('name', project['name'])
         self.set_property('provider', provider)
         self.set_property('id', project['id'])
         self.tasks = []
         for task in self.api.items.all():
             if task['project_id'] == project['id']:
-                self.tasks.append(TodoistTask(task, self))
+                task = TodoistTask(task, self, self.api)
+                self.save_task(task)
 
-    def do_get_id(self):
-        return self.get_property('id')
+    # def save_task(self, task):
+    #     if task in self.task:
+    #         item = self.api.items.get_by_id(task.get_id())
+    #         item.update(
+    #             content=task.get_title(),
+    #             project_id=task.get_list().get_id(),
+    #             priority=task.get_priority(),
+    #             indent=task.get_date(),
+    #         )
+    #         self.api.commit()
+    #         self.emit('task-updated', self, task, None)
+    #     else:
+    #         item = self.api.items.add(
+    #             content=task.get_title(),
+    #             project_id=task.get_list().get_id(),
+    #             priority=task.get_priority(),
+    #             indent=task.get_date(),
+    #         )
+    #         self.api.commit()
+    #         task = TodoistTask(item, self)
+    #         self.tasks.append(task)
+    #         self.emit('task-added', self, task, None)
 
-    def do_set_id(self, id):
-        self.set_property('id', id)
+    # def remove_task(self, task):
+    #     item = self.api.items.get_by_id(task.get_id())
+    #     item.delete()
+    #     self.api.commit()
+    #     self.tasks.remove(task)
+    #     self.emit('task-removed', self, task, None)
 
-    def do_get_tasks(self):
-        return self.tasks
-
-    def do_save_task(self, task):
-        if task in self.task:
-            item = self.api.items.get_by_id(task.do_get_id())
-            item.update(
-                content=task.do_get_title(),
-                project_id=task.do_get_list().do_get_id(),
-                priority=task.do_get_priority(),
-                indent=task.do_get_date(),
-            )
-            self.api.commit()
-            self.emit('task-updated', self, task, None)
-        else:
-            item = self.api.items.add(
-                content=task.do_get_title(),
-                project_id=task.do_get_list().do_get_id(),
-                priority=task.do_get_priority(),
-                indent=task.do_get_date(),
-            )
-            self.api.commit()
-            task = TodoistTask(item, self)
-            self.tasks.append(task)
-            self.emit('task-added', self, task, None)
-
-    def do_remove_task(self, task):
-        item = self.api.items.get_by_id(task.do_get_id())
-        item.delete()
-        self.api.commit()
-        self.tasks.remove(task)
-        self.emit('task-removed', self, task, None)
-
-    def do_contains(self, task):
-        return task in self.tasks
+    # def contains(self, task):
+    #     return task in self.tasks
 
 
 class TodoistProvider(Gtd.Object, Gtd.Provider):
@@ -221,12 +211,14 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
     _icon = Gio.ThemedIcon(name='todoist')
     _id = None
     _name = 'Todoist'
+    _account = None
+    _default_task_list = None
 
-    @GObject.Property(type=str)
+    @GObject.Property(type=str, default=None)
     def description(self):
         return self._description
 
-    @GObject.Property(type=bool)
+    @GObject.Property(type=bool, default=False)
     def enabled(self):
         return self._enabled
 
@@ -234,27 +226,37 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
     def icon(self):
         return self._icon
 
-    @GObject.Property(type=str)
+    @GObject.Property(type=str, default=None)
     def id(self):
         return self._id
 
-    @GObject.Property(type=str)
+    @GObject.Property(type=str, default=None)
     def name(self):
         return self._name
 
-    def __init__(self, ):
-        Gtd.Object.__init__(self)
-        self.task_lists = []
-        self.default_task_list = None
-        self.api = get_todoist_api()
-        self.import_from_todoist()
+    @GObject.Property(type=Account)
+    def account(self):
+        return self._account
 
-    def import_from_todoist(self):
+    @GObject.Property(type=TodoistTaskList)
+    def default_task_list(self):
+        return self._default_task_list
+
+    def __init__(self, account):
+        Gtd.Object.__init__(self)
+        self.set_ready(False)
+        self._account = account
+        self.task_lists = []
+        self.api = TodoistAPI(self.account.auth.access_token)
+        self._helper_import_data()
+
+    def _helper_import_data(self):
         projects = self.api.projects.all()
-        self.task_lists = [TodoistTaskList(p, self) for p in projects]
+        self.task_lists = [TodoistTaskList(p, self, self.api) for p in projects]
         for task_list in self.task_lists:
             if task_list.get_property('name') == 'Inbox':
-                self.default_task_list = task_list
+                self._default_task_list = task_list
+        self.set_ready(True)
 
     def do_get_description(self):
         return self.get_property('description')
@@ -272,44 +274,44 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
         return self.get_property('name')
 
     def do_create_task(self, task):
-        self.default_task_list.do_save_task(task)
+        self.default_task_list.save_task(task)
 
     def do_update_task(self, task):
-        self.default_task_list.do_save_task(task)
+        self.default_task_list.save_task(task)
 
     def do_remove_task(self, task):
-        self.default_task_list.do_remove_task(task)
+        self.default_task_list.remove_task(task)
 
     def do_create_task_list(self, task_list):
         print(task_list)
         info = {
-            'name':task_list.do_get_name(),
-            'color':convert_to_todoist_color(task_list.do_get_color()),
+            'name':task_list.get_name(),
+            'color':convert_to_todoist_color(task_list.get_color()),
         }
         project = self.api.projects.add(**info)
         self.api.commit()
         task_list = TodoistTaskList(project, self)
         self.task_lists.append(task_list)
-        # self.emit('list-added', self, task_list, None)
+        self.emit('list-added', self, task_list, None)
 
     def do_update_task_list(self, task_list):
         print(task_list)
-        project = self.api.projects.get_by_id(task_list.do_get_id())
+        project = self.api.projects.get_by_id(task_list.get_id())
         info = {
-            'name':task_list.do_get_name(),
-            'color':convert_to_todoist_color(task_list.do_get_color()),
+            'name':task_list.get_name(),
+            'color':convert_to_todoist_color(task_list.get_color()),
         }
         project.update(**info)
         self.api.commit()
-        # self.emit('list-changed', self, task_list, None)
+        self.emit('list-changed', self, task_list, None)
 
     def do_remove_task_list(self, task_list):
         print(task_list)
-        project = self.api.projects.get_by_id(task_list.do_get_id())
+        project = self.api.projects.get_by_id(task_list.get_id())
         project.delete()
         self.api.commit()
         self.task_lists.remove(task_list)
-        # self.emit('list-removed', self, task_list, None)
+        self.emit('list-removed', self, task_list, None)
 
     def do_get_task_lists(self):
         return self.task_lists
@@ -318,5 +320,5 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
         return self.default_task_list
 
     def do_get_edit_panel(self):
-        pass
         #TODO: ask what should be returned
+        pass
