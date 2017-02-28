@@ -127,21 +127,16 @@ class TodoistTask(Gtd.Task):
 
     id = GObject.Property(type=int)
 
-    def __init__(self, task, task_list, api):
+    def __init__(self, task, task_list):
         Gtd.Task.__init__(self)
-        self.api = api
         self.import_from_todoist(task, task_list)
 
     def import_from_todoist(self, task, task_list):
+        due_date = convert_from_todoist_datetime(task['due_date_utc'])
         self.set_property('complete', task['checked'])
-        # self.set_property(
-        #     'creation-date',
-        #     convert_from_todoist_datetime(task['date_added']),
-        # )
-        # self.set_property('depth', task['indent'])
         self.set_property('description', task['content'])
+        self.set_property('due-date', due_date)
         self.set_property('list', task_list)
-        # self.set_property('parent', None)
         self.set_property('priority', task['priority'])
         self.set_property('title', task['content'])
         self.set_property('id', task['id'])
@@ -152,9 +147,8 @@ class TodoistTaskList(Gtd.TaskList):
 
     id = GObject.Property(type=int)
 
-    def __init__(self, project, provider, api):
+    def __init__(self, project, provider):
         Gtd.TaskList.__init__(self)
-        self.api = api
         self.import_from_todoist(project, provider)
 
     def import_from_todoist(self, project, provider):
@@ -163,44 +157,6 @@ class TodoistTaskList(Gtd.TaskList):
         self.set_property('name', project['name'])
         self.set_property('provider', provider)
         self.set_property('id', project['id'])
-        self.tasks = []
-        for task in self.api.items.all():
-            if task['project_id'] == project['id']:
-                task = TodoistTask(task, self, self.api)
-                self.save_task(task)
-
-    # def save_task(self, task):
-    #     if task in self.task:
-    #         item = self.api.items.get_by_id(task.get_id())
-    #         item.update(
-    #             content=task.get_title(),
-    #             project_id=task.get_list().get_id(),
-    #             priority=task.get_priority(),
-    #             indent=task.get_date(),
-    #         )
-    #         self.api.commit()
-    #         self.emit('task-updated', self, task, None)
-    #     else:
-    #         item = self.api.items.add(
-    #             content=task.get_title(),
-    #             project_id=task.get_list().get_id(),
-    #             priority=task.get_priority(),
-    #             indent=task.get_date(),
-    #         )
-    #         self.api.commit()
-    #         task = TodoistTask(item, self)
-    #         self.tasks.append(task)
-    #         self.emit('task-added', self, task, None)
-
-    # def remove_task(self, task):
-    #     item = self.api.items.get_by_id(task.get_id())
-    #     item.delete()
-    #     self.api.commit()
-    #     self.tasks.remove(task)
-    #     self.emit('task-removed', self, task, None)
-
-    # def contains(self, task):
-    #     return task in self.tasks
 
 
 class TodoistProvider(Gtd.Object, Gtd.Provider):
@@ -244,18 +200,23 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
 
     def __init__(self, account):
         Gtd.Object.__init__(self)
-        self.set_ready(False)
         self._account = account
-        self.task_lists = []
+        self.task_lists = {}
         self.api = TodoistAPI(self.account.auth.access_token)
+        self.set_ready(False)
         self._helper_import_data()
 
     def _helper_import_data(self):
-        projects = self.api.projects.all()
-        self.task_lists = [TodoistTaskList(p, self, self.api) for p in projects]
-        for task_list in self.task_lists:
+        for project in self.api.projects.all():
+            task_list = TodoistTaskList(project, self)
+            self.task_lists[task_list.id] = task_list
+            self.emit('list-added', task_list)
             if task_list.get_property('name') == 'Inbox':
                 self._default_task_list = task_list
+        for item in self.api.items.all():
+            task_list = self.task_lists[item['project_id']]
+            task = TodoistTask(item, task_list)
+            task_list.save_task(task)
         self.set_ready(True)
 
     def do_get_description(self):
@@ -274,13 +235,13 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
         return self.get_property('name')
 
     def do_create_task(self, task):
-        self.default_task_list.save_task(task)
+        pass
 
     def do_update_task(self, task):
-        self.default_task_list.save_task(task)
+        pass
 
     def do_remove_task(self, task):
-        self.default_task_list.remove_task(task)
+        pass
 
     def do_create_task_list(self, task_list):
         print(task_list)
@@ -314,11 +275,10 @@ class TodoistProvider(Gtd.Object, Gtd.Provider):
         self.emit('list-removed', self, task_list, None)
 
     def do_get_task_lists(self):
-        return self.task_lists
+        return list(self.task_lists.values())
 
     def do_get_default_task_list(self):
         return self.default_task_list
 
     def do_get_edit_panel(self):
-        #TODO: ask what should be returned
-        pass
+        return None
