@@ -201,8 +201,8 @@ class PreferencesPanel(Gtk.Stack):
         self.set_visible_child(self.box_accounts_manager)
 
     def on_authenticate(self, obj):
-        # TODO: todo
-        pass
+        account = self._selected_account
+        account.auth.request_auth_code()
 
 
 class Plugin(GObject.Object, Gtd.Activatable):
